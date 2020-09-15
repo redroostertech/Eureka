@@ -45,16 +45,30 @@ open class BaseCell: UITableViewCell, BaseCellType {
     /**
      Function that returns the FormViewController this cell belongs to.
      */
-    public func formViewController() -> FormViewController? {
-        var responder: AnyObject? = self
-        while responder != nil {
-            if let formVC = responder as? FormViewController {
-              return formVC
+    #if iMessage
+        @available(iOSApplicationExtension 10.0, *)
+        public func formViewController() -> FormMessagesAppViewController? {
+            var responder: AnyObject? = self
+            while responder != nil {
+                if let formVC = responder as? FormMessagesAppViewController {
+                  return formVC
+                }
+                responder = responder?.next
             }
-            responder = responder?.next
+            return nil
         }
-        return nil
-    }
+    #else
+        public func formViewController() -> FormViewController? {
+            var responder: AnyObject? = self
+            while responder != nil {
+                if let formVC = responder as? FormViewController {
+                  return formVC
+                }
+                responder = responder?.next
+            }
+            return nil
+        }
+    #endif
 
     open func setup() {}
     open func update() {}
@@ -124,11 +138,7 @@ open class Cell<T>: BaseCell, TypedCellType where T: Equatable {
     open override func update() {
         super.update()
         textLabel?.text = row.title
-        if #available(iOS 13.0, *) {
-            textLabel?.textColor = row.isDisabled ? .tertiaryLabel : .label
-        } else {
-            textLabel?.textColor = row.isDisabled ? .gray : .black
-        }
+        textLabel?.textColor = row.isDisabled ? .gray : row.titleColor ?? .black
         detailTextLabel?.text = row.displayValueFor?(row.value) ?? (row as? NoValueDisplayTextConformance)?.noValueDisplayText
     }
 

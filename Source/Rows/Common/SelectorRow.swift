@@ -51,7 +51,12 @@ open class SelectorRow<Cell: CellType>: OptionsRow<Cell>, PresenterRowType where
     open var presentationMode: PresentationMode<SelectorViewController<SelectorRow<Cell>>>?
 
     /// Will be called before the presentation occurs.
+    #if iMessage
+    @available(iOSApplicationExtension 10.0, *)
+    open var onPresentCallback: ((FormMessagesAppViewController, SelectorViewController<SelectorRow<Cell>>) -> Void)?
+    #else
     open var onPresentCallback: ((FormViewController, SelectorViewController<SelectorRow<Cell>>) -> Void)?
+    #endif
 
     required public init(tag: String?) {
         super.init(tag: tag)

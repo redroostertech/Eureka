@@ -37,7 +37,13 @@ public protocol PresenterRowType: TypedRowType {
     var presentationMode: PresentationMode<PresentedControllerType>? { get set }
 
     /// Will be called before the presentation occurs.
+    #if iMessage
+    @available(iOSApplicationExtension 10.0, *)
+    var onPresentCallback: ((FormMessagesAppViewController, PresentedControllerType) -> Void)? { get set }
+    #else
     var onPresentCallback: ((FormViewController, PresentedControllerType) -> Void)? { get set }
+    #endif
+     
 }
 
 extension PresenterRowType {
@@ -49,9 +55,18 @@ extension PresenterRowType {
      
      - returns: this row
      */
+    #if iMessage
+    @available(iOSApplicationExtension 10.0, *)
+        @discardableResult
+    public func onPresent(_ callback: ((FormMessagesAppViewController, PresentedControllerType) -> Void)?) -> Self {
+        onPresentCallback = callback
+        return self
+    }
+    #else
     @discardableResult
     public func onPresent(_ callback: ((FormViewController, PresentedControllerType) -> Void)?) -> Self {
         onPresentCallback = callback
         return self
     }
+    #endif
 }

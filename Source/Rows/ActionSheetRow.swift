@@ -52,7 +52,13 @@ open class _ActionSheetRow<Cell: CellType>: AlertOptionsRow<Cell>, PresenterRowT
 
     public typealias ProviderType = SelectorAlertController<_ActionSheetRow<Cell>>
     
+    #if iMessage
+    @available(iOSApplicationExtension 10.0, *)
+    public var onPresentCallback: ((FormMessagesAppViewController, ProviderType) -> Void)?
+    #else
     public var onPresentCallback: ((FormViewController, ProviderType) -> Void)?
+    #endif
+    
     lazy public var presentationMode: PresentationMode<ProviderType>? = {
         return .presentModally(controllerProvider: ControllerProvider.callback { [weak self] in
             let vc = SelectorAlertController<_ActionSheetRow<Cell>>(title: self?.selectorTitle, message: nil, preferredStyle: .actionSheet)

@@ -91,6 +91,7 @@
 		B244E6541FE1C94F0026B944 /* AlertOptionsRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B244E6531FE1C94F0026B944 /* AlertOptionsRow.swift */; };
 		B257FE2E1EC0F66900043911 /* RowsInsertionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B257FE2D1EC0F66900043911 /* RowsInsertionTests.swift */; };
 		B2A401161EC0BA140042EDF0 /* SectionsInsertionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2A401151EC0BA140042EDF0 /* SectionsInsertionTests.swift */; };
+		D7393258251109A70018A8EE /* Core+iMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7393257251109A70018A8EE /* Core+iMessage.swift */; };
 		FA56B6AF1DBAD38900407C94 /* RuleEqualsToRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA56B6AE1DBAD38900407C94 /* RuleEqualsToRow.swift */; };
 /* End PBXBuildFile section */
 
@@ -192,6 +193,7 @@
 		B244E6531FE1C94F0026B944 /* AlertOptionsRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AlertOptionsRow.swift; path = Common/AlertOptionsRow.swift; sourceTree = "<group>"; };
 		B257FE2D1EC0F66900043911 /* RowsInsertionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RowsInsertionTests.swift; path = Tests/RowsInsertionTests.swift; sourceTree = SOURCE_ROOT; };
 		B2A401151EC0BA140042EDF0 /* SectionsInsertionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SectionsInsertionTests.swift; path = Tests/SectionsInsertionTests.swift; sourceTree = SOURCE_ROOT; };
+		D7393257251109A70018A8EE /* Core+iMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core+iMessage.swift"; sourceTree = "<group>"; };
 		FA56B6AE1DBAD38900407C94 /* RuleEqualsToRow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RuleEqualsToRow.swift; path = Source/Validations/RuleEqualsToRow.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
@@ -217,13 +219,13 @@
 		2859CD901C7CF1FD0002982F /* Core */ = {
 			isa = PBXGroup;
 			children = (
-				2859CDE81C7DD78E0002982F /* BaseRow.swift */,
-				28EEBFFC1C7E25F100300699 /* Cell.swift */,
 				28EEBFE41C7E1B3B00300699 /* CellType.swift */,
+				28EEBFFC1C7E25F100300699 /* Cell.swift */,
 				2859CD921C7CF1FD0002982F /* Core.swift */,
 				2859CDBD1C7D137D0002982F /* Form.swift */,
 				2859CDC31C7D19C50002982F /* HeaderFooterView.swift */,
 				2859CD931C7CF1FD0002982F /* Helpers.swift */,
+				2859CDE81C7DD78E0002982F /* BaseRow.swift */,
 				28EEBFF51C7E240B00300699 /* InlineRowType.swift */,
 				2859CDC51C7D1A2E0002982F /* NavigationAccessoryView.swift */,
 				28EEBFFA1C7E25C500300699 /* Operators.swift */,
@@ -348,6 +350,7 @@
 		51729DED1B9A4F5E004A00EB /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				D7393256251109830018A8EE /* iMessage Configuration */,
 				2859CD901C7CF1FD0002982F /* Core */,
 				2859CD971C7CF2020002982F /* Rows */,
 				287E7D7C1D62552C0065F4DE /* Validations */,
@@ -380,6 +383,14 @@
 				B257FE2D1EC0F66900043911 /* RowsInsertionTests.swift */,
 			);
 			path = Tests;
+			sourceTree = "<group>";
+		};
+		D7393256251109830018A8EE /* iMessage Configuration */ = {
+			isa = PBXGroup;
+			children = (
+				D7393257251109A70018A8EE /* Core+iMessage.swift */,
+			);
+			path = "iMessage Configuration";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -444,6 +455,7 @@
 				TargetAttributes = {
 					51729DEA1B9A4F5E004A00EB = {
 						CreatedOnToolsVersion = 7.0;
+						DevelopmentTeam = 2PSWQPK482;
 						LastSwiftMigration = 1020;
 						ProvisioningStyle = Automatic;
 					};
@@ -540,6 +552,7 @@
 				28EEC01C1C7E3A7400300699 /* ButtonRowWithPresent.swift in Sources */,
 				798C5ADA1EF1E35600A21F52 /* SwipeActions.swift in Sources */,
 				28EEBFF41C7E240000300699 /* RowProtocols.swift in Sources */,
+				D7393258251109A70018A8EE /* Core+iMessage.swift in Sources */,
 				28EEBFFE1C7E281F00300699 /* CheckRow.swift in Sources */,
 				2859CDC41C7D19C50002982F /* HeaderFooterView.swift in Sources */,
 				28EEC00C1C7E396000300699 /* SelectorRow.swift in Sources */,
@@ -717,9 +730,10 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 2PSWQPK482;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -741,9 +755,10 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 2PSWQPK482;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";

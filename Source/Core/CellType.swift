@@ -67,7 +67,13 @@ public protocol BaseCellType : class {
     /**
      A reference to the controller in which the cell is displayed.
      */
-    func formViewController () -> FormViewController?
+//    #if canImport(Messages)
+    #if iMessage
+        @available(iOSApplicationExtension 10.0, *)
+        func formViewController () -> FormMessagesAppViewController?
+    #else
+        func formViewController () -> FormViewController?
+    #endif
 }
 
 public protocol TypedCellType: BaseCellType {

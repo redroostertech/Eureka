@@ -35,8 +35,13 @@ open class GenericMultipleSelectorRow<T, Cell: CellType>: Row<Cell>, PresenterRo
     open var presentationMode: PresentationMode<PresentedController>?
 
     /// Will be called before the presentation occurs.
+    #if iMessage
+    @available(iOSApplicationExtension 10.0, *)
+    open var onPresentCallback: ((FormMessagesAppViewController, PresentedController) -> Void)?
+    #else
     open var onPresentCallback: ((FormViewController, PresentedController) -> Void)?
-
+    #endif
+    
     /// Title to be displayed for the options
     open var selectorTitle: String?
     open var noValueDisplayText: String?

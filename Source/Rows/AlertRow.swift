@@ -28,7 +28,12 @@ open class _AlertRow<Cell: CellType>: AlertOptionsRow<Cell>, PresenterRowType wh
 
     public typealias PresentedController = SelectorAlertController<_AlertRow<Cell>>
     
+    #if iMessage
+    @available(iOSApplicationExtension 10.0, *)
+    open var onPresentCallback: ((FormMessagesAppViewController, PresentedController) -> Void)?
+    #else
     open var onPresentCallback: ((FormViewController, PresentedController) -> Void)?
+    #endif
     lazy open var presentationMode: PresentationMode<PresentedController>? = {
         return .presentModally(controllerProvider: ControllerProvider<PresentedController>.callback { [weak self] in
             let vc = PresentedController(title: self?.selectorTitle, message: nil, preferredStyle: .alert)

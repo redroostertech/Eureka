@@ -58,6 +58,9 @@ open class BaseRow: BaseRowType {
 
     /// The title will be displayed in the textLabel of the row.
     public var title: String?
+    
+    /// The color of the title
+    public var titleColor: UIColor?
 
     /// Parameter used when creating the cell for this row.
     public var cellStyle = UITableViewCell.CellStyle.value1
@@ -271,6 +274,29 @@ extension BaseRow {
 
 extension BaseRow: Equatable, Hidable, Disableable {}
 
+#if iMessage
+ @available(iOSApplicationExtension 10.0, *)
+extension BaseRow {
+
+    public func reload(with rowAnimation: UITableView.RowAnimation = .none) {
+        guard let tableView = baseCell?.formViewController()?.tableView ?? (section?.form?.delegate as? FormMessagesAppViewController)?.tableView, let indexPath = indexPath else { return }
+        tableView.reloadRows(at: [indexPath], with: rowAnimation)
+    }
+
+    public func deselect(animated: Bool = true) {
+        guard let indexPath = indexPath,
+            let tableView = baseCell?.formViewController()?.tableView ?? (section?.form?.delegate as? FormMessagesAppViewController)?.tableView  else { return }
+        tableView.deselectRow(at: indexPath, animated: animated)
+    }
+
+    public func select(animated: Bool = false, scrollPosition: UITableView.ScrollPosition = .none) {
+        guard let indexPath = indexPath,
+            let tableView = baseCell?.formViewController()?.tableView ?? (section?.form?.delegate as? FormMessagesAppViewController)?.tableView  else { return }
+        tableView.selectRow(at: indexPath, animated: animated, scrollPosition: scrollPosition)
+    }
+}
+
+#else
 extension BaseRow {
 
     public func reload(with rowAnimation: UITableView.RowAnimation = .none) {
@@ -290,6 +316,8 @@ extension BaseRow {
         tableView.selectRow(at: indexPath, animated: animated, scrollPosition: scrollPosition)
     }
 }
+
+#endif
 
 public func == (lhs: BaseRow, rhs: BaseRow) -> Bool {
     return lhs === rhs
