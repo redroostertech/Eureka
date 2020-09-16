@@ -30,11 +30,27 @@ open class _PopoverSelectorRow<Cell: CellType> : SelectorRow<Cell> where Cell: B
     public required init(tag: String?) {
         super.init(tag: tag)
         onPresentCallback = { [weak self] (_, viewController) -> Void in
-            guard let porpoverController = viewController.popoverPresentationController, let tableView = self?.baseCell.formViewController()?.tableView, let cell = self?.cell else {
+            #if iMessage
+            if #available(iOS 10.0, *) {
+            guard
+                let porpoverController = viewController.popoverPresentationController,
+                let formviewcontroller = self?.baseCell.formViewController() as? FormMessagesAppViewController,
+                let tableView = formviewcontroller.tableView, let cell = self?.cell else {
                 fatalError()
             }
             porpoverController.sourceView = tableView
             porpoverController.sourceRect = tableView.convert(cell.detailTextLabel?.frame ?? cell.textLabel?.frame ?? cell.contentView.frame, from: cell)
+            }
+            #else
+            guard
+                let porpoverController = viewController.popoverPresentationController,
+                let formviewcontroller = self?.baseCell.formViewController() as? FormViewController,
+                let tableView = formviewcontroller.tableView, let cell = self?.cell else {
+                fatalError()
+            }
+            porpoverController.sourceView = tableView
+            porpoverController.sourceRect = tableView.convert(cell.detailTextLabel?.frame ?? cell.textLabel?.frame ?? cell.contentView.frame, from: cell)
+            #endif
         }
         presentationMode = .popover(controllerProvider: ControllerProvider.callback { return SelectorViewController<SelectorRow<Cell>> { _ in } }, onDismiss: { [weak self] in
             $0.dismiss(animated: true)

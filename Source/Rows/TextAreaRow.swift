@@ -186,8 +186,18 @@ open class _TextAreaCell<T> : Cell<T>, UITextViewDelegate, AreaCell where T: Equ
     // MARK: TextFieldDelegate
 
     open func textViewDidBeginEditing(_ textView: UITextView) {
-        formViewController()?.beginEditing(of: self)
-        formViewController()?.textInputDidBeginEditing(textView, cell: self)
+        #if iMessage
+        if #available(iOS 10.0, *) {
+            guard let formViewController = formViewController() as? FormMessagesViewController else { return }
+            formViewController.beginEditing(of: self)
+            formViewController.textInputDidBeginEditing(textView, cell: self)
+        }
+        #else
+        guard let formViewController = formViewController() as? FormViewController else { return }
+        formViewController.beginEditing(of: self)
+        formViewController.textInputDidBeginEditing(textView, cell: self)
+        #endif
+        
         if let textAreaConformance = (row as? TextAreaConformance), let _ = textAreaConformance.formatter, textAreaConformance.useFormatterOnDidBeginEditing ?? textAreaConformance.useFormatterDuringInput {
             textView.text = self.displayValue(useFormatter: true)
         } else {
@@ -196,15 +206,72 @@ open class _TextAreaCell<T> : Cell<T>, UITextViewDelegate, AreaCell where T: Equ
     }
 
     open func textViewDidEndEditing(_ textView: UITextView) {
-        formViewController()?.endEditing(of: self)
-        formViewController()?.textInputDidEndEditing(textView, cell: self)
+        #if iMessage
+        if #available(iOS 10.0, *) {
+            guard let formViewController = formViewController() as? FormMessagesViewController else { return }
+            formViewController.endEditing(of: self)
+            formViewController.textInputDidEndEditing(textView, cell: self)
+        }
+        #else
+        guard let formViewController = formViewController() as? FormViewController else { return }
+        formViewController.endEditing(of: self)
+        formViewController.textInputDidEndEditing(textView, cell: self)
+        #endif
+        
         textViewDidChange(textView)
         textView.text = displayValue(useFormatter: (row as? FormatterConformance)?.formatter != nil)
     }
 
     open func textViewDidChange(_ textView: UITextView) {
-
-        if let textAreaConformance = row as? TextAreaConformance, case .dynamic = textAreaConformance.textAreaHeight, let tableView = formViewController()?.tableView {
+        #if iMessage
+        if #available(iOS 10.0, *) {
+            if
+                let textAreaConformance = row as? TextAreaConformance,
+                case .dynamic = textAreaConformance.textAreaHeight,
+                let formviewcontroller = formViewController() as? FormMessagesViewController,
+                let tableView = formviewcontroller.tableView {
+                let currentOffset = tableView.contentOffset
+                UIView.performWithoutAnimation {
+                    tableView.beginUpdates()
+                    tableView.endUpdates()
+                }
+                tableView.setContentOffset(currentOffset, animated: false)
+            }
+            placeholderLabel?.isHidden = textView.text.count != 0
+            guard let textValue = textView.text else {
+                row.value = nil
+                return
+            }
+            guard let formatterRow = row as? FormatterConformance, let formatter = formatterRow.formatter else {
+                row.value = textValue.isEmpty ? nil : (T.init(string: textValue) ?? row.value)
+                return
+            }
+            if formatterRow.useFormatterDuringInput {
+                let value: AutoreleasingUnsafeMutablePointer<AnyObject?> = AutoreleasingUnsafeMutablePointer<AnyObject?>.init(UnsafeMutablePointer<T>.allocate(capacity: 1))
+                let errorDesc: AutoreleasingUnsafeMutablePointer<NSString?>? = nil
+                if formatter.getObjectValue(value, for: textValue, errorDescription: errorDesc) {
+                    row.value = value.pointee as? T
+                    guard var selStartPos = textView.selectedTextRange?.start else { return }
+                    let oldVal = textView.text
+                    textView.text = row.displayValueFor?(row.value)
+                    selStartPos = (formatter as? FormatterProtocol)?.getNewPosition(forPosition: selStartPos, inTextInput: textView, oldValue: oldVal, newValue: textView.text) ?? selStartPos
+                    textView.selectedTextRange = textView.textRange(from: selStartPos, to: selStartPos)
+                    return
+                }
+            } else {
+                let value: AutoreleasingUnsafeMutablePointer<AnyObject?> = AutoreleasingUnsafeMutablePointer<AnyObject?>.init(UnsafeMutablePointer<T>.allocate(capacity: 1))
+                let errorDesc: AutoreleasingUnsafeMutablePointer<NSString?>? = nil
+                if formatter.getObjectValue(value, for: textValue, errorDescription: errorDesc) {
+                    row.value = value.pointee as? T
+                }
+            }
+        }
+        #else
+        if
+            let textAreaConformance = row as? TextAreaConformance,
+            case .dynamic = textAreaConformance.textAreaHeight,
+            let formviewcontroller = formViewController() as? FormViewController,
+            let tableView = formviewcontroller.tableView {
             let currentOffset = tableView.contentOffset
             UIView.performWithoutAnimation {
                 tableView.beginUpdates()
@@ -240,21 +307,57 @@ open class _TextAreaCell<T> : Cell<T>, UITextViewDelegate, AreaCell where T: Equ
                 row.value = value.pointee as? T
             }
         }
+        #endif
     }
 
     open func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-        return formViewController()?.textInput(textView, shouldChangeCharactersInRange: range, replacementString: text, cell: self) ?? true
+        #if iMessage
+        if #available(iOS 10.0, *) {
+            guard let formviewcontroller = formViewController() as? FormMessagesViewController else { return true }
+            return formviewcontroller.textInput(textView, shouldChangeCharactersInRange: range, replacementString: text, cell: self)
+        }
+        #else
+        guard let formviewcontroller = formViewController() as? FormViewController else { return true }
+        return formviewcontroller.textInput(textView, shouldChangeCharactersInRange: range, replacementString: text, cell: self)
+
+        #endif
+        
     }
 
     open func textViewShouldBeginEditing(_ textView: UITextView) -> Bool {
+        #if iMessage
+        if #available(iOS 10.0, *) {
+            guard let formviewcontroller = formViewController() as? FormMessagesViewController else { return true }
+             if let textAreaRow = self.row as? _TextAreaRow, textAreaRow.textAreaMode == .readOnly {
+                return false
+            }
+            return formviewcontroller.textInputShouldBeginEditing(textView, cell: self)
+        }
+        #else
+        guard let formviewcontroller = formViewController() as? FormViewController else { return true }
         if let textAreaRow = self.row as? _TextAreaRow, textAreaRow.textAreaMode == .readOnly {
             return false
         }
-        return formViewController()?.textInputShouldBeginEditing(textView, cell: self) ?? true
+        return formviewcontroller.textInputShouldBeginEditing(textView, cell: self)
+        #endif
     }
 
     open func textViewShouldEndEditing(_ textView: UITextView) -> Bool {
-        return formViewController()?.textInputShouldEndEditing(textView, cell: self) ?? true
+        #if iMessage
+           if #available(iOS 10.0, *) {
+               guard let formviewcontroller = formViewController() as? FormMessagesViewController else { return true }
+                if let textAreaRow = self.row as? _TextAreaRow, textAreaRow.textAreaMode == .readOnly {
+                   return false
+               }
+               return formviewcontroller.textInputShouldEndEditing(textView, cell: self)
+           }
+           #else
+           guard let formviewcontroller = formViewController() as? FormViewController else { return true }
+           if let textAreaRow = self.row as? _TextAreaRow, textAreaRow.textAreaMode == .readOnly {
+               return false
+           }
+           return formviewcontroller.textInputShouldEndEditing(textView, cell: self)
+           #endif
     }
 
     open override func updateConstraints() {

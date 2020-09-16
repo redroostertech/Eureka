@@ -253,7 +253,16 @@ public class _FloatLabelCell<T>: Cell<T>, UITextFieldDelegate, TextFieldCell whe
     //MARK: TextFieldDelegate
 
     public func textFieldDidBeginEditing(_ textField: UITextField) {
-        formViewController()?.beginEditing(of: self)
+        #if iMessage
+        if #available(iOS 10.0, *) {
+            guard let formviewcontroller = cell.formViewController() as? FormMessagesViewController else { return }
+            formviewcontroller.beginEditing(of: self)
+        }
+        #else
+        guard let formviewcontroller = formViewController() as? FormViewController else { return }
+        formviewcontroller.beginEditing(of: self)
+        #endif
+        
         if let fieldRowConformance = row as? FormatterConformance, let _ = fieldRowConformance.formatter, fieldRowConformance.useFormatterOnDidBeginEditing ?? fieldRowConformance.useFormatterDuringInput {
             textField.text = displayValue(useFormatter: true)
         } else {
@@ -262,8 +271,17 @@ public class _FloatLabelCell<T>: Cell<T>, UITextFieldDelegate, TextFieldCell whe
     }
 
     public func textFieldDidEndEditing(_ textField: UITextField) {
-        formViewController()?.endEditing(of: self)
-        formViewController()?.textInputDidEndEditing(textField, cell: self)
+        #if iMessage
+        if #available(iOS 10.0, *) {
+            guard let formviewcontroller = cell.formViewController() as? FormMessagesViewController else { return }
+            formviewcontroller.beginEditing(of: self)
+        }
+        #else
+        guard let formviewcontroller = formViewController() as? FormViewController else { return }
+        formviewcontroller.endEditing(of: self)
+        formviewcontroller.textInputDidEndEditing(textField, cell: self)
+        #endif
+        
         textFieldDidChange(textField)
         textField.text = displayValue(useFormatter: (row as? FormatterConformance)?.formatter != nil)
     }
@@ -521,7 +539,7 @@ public final class LocationRow: OptionsRow<PushSelectorCell<CLLocation>>, Presen
     public var presentationMode: PresentationMode<PresenterRow>?
     
     /// Will be called before the presentation occurs.
-    public var onPresentCallback: ((FormViewController, PresenterRow) -> Void)?
+    public var onPresentCallback: ((UIViewController, PresenterRow) -> Void)?
 
     public required init(tag: String?) {
         super.init(tag: tag)

@@ -426,8 +426,18 @@ open class _FieldCell<T> : Cell<T>, UITextFieldDelegate, TextFieldCell where T: 
     // MARK: TextFieldDelegate
 
     open func textFieldDidBeginEditing(_ textField: UITextField) {
-        formViewController()?.beginEditing(of: self)
-        formViewController()?.textInputDidBeginEditing(textField, cell: self)
+        #if iMessage
+        if #available(iOS 10.0, *) {
+            guard let formviewcontroller = formViewController() as? FormMessagesViewController else { return }
+            formviewcontroller.beginEditing(of: self)
+            formviewcontroller.textInputDidBeginEditing(textField, cell: self)
+        }
+        #else
+        guard let formviewcontroller = formViewController() as? FormViewController else { return }
+        formviewcontroller.beginEditing(of: self)
+        formviewcontroller.textInputDidBeginEditing(textField, cell: self)
+        #endif
+        
         if let fieldRowConformance = row as? FormatterConformance, let _ = fieldRowConformance.formatter, fieldRowConformance.useFormatterOnDidBeginEditing ?? fieldRowConformance.useFormatterDuringInput {
             textField.text = displayValue(useFormatter: true)
         } else {
@@ -436,30 +446,80 @@ open class _FieldCell<T> : Cell<T>, UITextFieldDelegate, TextFieldCell where T: 
     }
 
     open func textFieldDidEndEditing(_ textField: UITextField) {
-        formViewController()?.endEditing(of: self)
-        formViewController()?.textInputDidEndEditing(textField, cell: self)
+        #if iMessage
+        if #available(iOS 10.0, *) {
+            guard let formviewcontroller = formViewController() as? FormMessagesViewController else { return }
+            formviewcontroller.endEditing(of: self)
+            formviewcontroller.textInputDidEndEditing(textField, cell: self)
+        }
+        #else
+        guard let formviewcontroller = formViewController() as? FormViewController else { return }
+        formviewcontroller.endEditing(of: self)
+        formviewcontroller.textInputDidEndEditing(textField, cell: self)
+        #endif
+ 
         textFieldDidChange(textField)
         textField.text = displayValue(useFormatter: (row as? FormatterConformance)?.formatter != nil)
     }
 
     open func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        return formViewController()?.textInputShouldReturn(textField, cell: self) ?? true
+        #if iMessage
+        if #available(iOS 10.0, *) {
+            guard let formviewcontroller = formViewController() as? FormMessagesViewController else { return true }
+            return formviewcontroller.textInputShouldReturn(textField, cell: self)
+        }
+        #else
+        guard let formviewcontroller = formViewController() as? FormViewController else { return true }
+        return formviewcontroller.textInputShouldReturn(textField, cell: self)
+        #endif
     }
 
     open func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-        return formViewController()?.textInput(textField, shouldChangeCharactersInRange:range, replacementString:string, cell: self) ?? true
+        #if iMessage
+        if #available(iOS 10.0, *) {
+            guard let formviewcontroller = formViewController() as? FormMessagesViewController else { return true }
+            return formviewcontroller.textInput(textField, shouldChangeCharactersInRange:range, replacementString:string, cell: self)
+        }
+        #else
+        guard let formviewcontroller = formViewController() as? FormViewController else { return true }
+        return formviewcontroller.textInput(textField, shouldChangeCharactersInRange:range, replacementString:string, cell: self)
+        #endif
     }
 
     open func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
-        return formViewController()?.textInputShouldBeginEditing(textField, cell: self) ?? true
+        #if iMessage
+        if #available(iOS 10.0, *) {
+            guard let formviewcontroller = formViewController() as? FormMessagesViewController else { return true }
+            return formviewcontroller.textInputShouldBeginEditing(textField, cell: self)
+        }
+        #else
+        guard let formviewcontroller = formViewController() as? FormViewController else { return true }
+        return formviewcontroller.textInputShouldBeginEditing(textField, cell: self)
+        #endif
     }
 
     open func textFieldShouldClear(_ textField: UITextField) -> Bool {
-        return formViewController()?.textInputShouldClear(textField, cell: self) ?? true
+        #if iMessage
+        if #available(iOS 10.0, *) {
+            guard let formviewcontroller = formViewController() as? FormMessagesViewController else { return true }
+            return formviewcontroller.textInputShouldClear(textField, cell: self)
+        }
+        #else
+        guard let formviewcontroller = formViewController() as? FormViewController else { return true }
+        return formviewcontroller.textInputShouldClear(textField, cell: self)
+        #endif
     }
 
     open func textFieldShouldEndEditing(_ textField: UITextField) -> Bool {
-        return formViewController()?.textInputShouldEndEditing(textField, cell: self) ?? true
+        #if iMessage
+        if #available(iOS 10.0, *) {
+            guard let formviewcontroller = formViewController() as? FormMessagesViewController else { return true }
+            return formviewcontroller.textInputShouldEndEditing(textField, cell: self)
+        }
+        #else
+        guard let formviewcontroller = formViewController() as? FormViewController else { return true }
+        return formviewcontroller.textInputShouldEndEditing(textField, cell: self)
+        #endif
 	}
 
 	open override func layoutSubviews() {

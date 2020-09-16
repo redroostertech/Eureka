@@ -45,18 +45,14 @@ open class PushSelectorCell<T: Equatable> : Cell<T>, CellType {
 
 /// Generic row type where a user must select a value among several options.
 open class SelectorRow<Cell: CellType>: OptionsRow<Cell>, PresenterRowType where Cell: BaseCell {
+    
 
     
     /// Defines how the view controller will be presented, pushed, etc.
     open var presentationMode: PresentationMode<SelectorViewController<SelectorRow<Cell>>>?
 
     /// Will be called before the presentation occurs.
-    #if iMessage
-    @available(iOSApplicationExtension 10.0, *)
-    open var onPresentCallback: ((FormMessagesAppViewController, SelectorViewController<SelectorRow<Cell>>) -> Void)?
-    #else
-    open var onPresentCallback: ((FormViewController, SelectorViewController<SelectorRow<Cell>>) -> Void)?
-    #endif
+    open var onPresentCallback: ((UIViewController, SelectorViewController<SelectorRow<Cell>>) -> Void)?
 
     required public init(tag: String?) {
         super.init(tag: tag)

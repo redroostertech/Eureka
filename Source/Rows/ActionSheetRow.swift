@@ -51,28 +51,45 @@ open class AlertSelectorCell<T> : Cell<T>, CellType where T: Equatable {
 open class _ActionSheetRow<Cell: CellType>: AlertOptionsRow<Cell>, PresenterRowType where Cell: BaseCell {
 
     public typealias ProviderType = SelectorAlertController<_ActionSheetRow<Cell>>
-    
-    #if iMessage
-    @available(iOSApplicationExtension 10.0, *)
-    public var onPresentCallback: ((FormMessagesAppViewController, ProviderType) -> Void)?
-    #else
-    public var onPresentCallback: ((FormViewController, ProviderType) -> Void)?
-    #endif
+
+    public var onPresentCallback: ((UIViewController, ProviderType) -> Void)?
     
     lazy public var presentationMode: PresentationMode<ProviderType>? = {
         return .presentModally(controllerProvider: ControllerProvider.callback { [weak self] in
             let vc = SelectorAlertController<_ActionSheetRow<Cell>>(title: self?.selectorTitle, message: nil, preferredStyle: .actionSheet)
             if let popView = vc.popoverPresentationController {
-                guard let cell = self?.cell, let tableView = cell.formViewController()?.tableView else { fatalError() }
+                #if iMessage
+                if #available(iOS 10.0, *) {
+                    guard
+                        let cell = self?.cell,
+                        let formViewController = self?.cell?.formViewController() as? FormMessagesViewController,
+                        let tableView = formViewController.tableView else { fatalError() }
+                    popView.sourceView = tableView
+                    popView.sourceRect = tableView.convert(cell.detailTextLabel?.frame ?? cell.textLabel?.frame ?? cell.contentView.frame, from: cell)
+                }
+                #else
+                guard
+                    let cell = self?.cell,
+                    let formViewController = self?.cell?.formViewController() as? FormViewController,
+                    let tableView = formViewController.tableView else { fatalError() }
                 popView.sourceView = tableView
                 popView.sourceRect = tableView.convert(cell.detailTextLabel?.frame ?? cell.textLabel?.frame ?? cell.contentView.frame, from: cell)
+                #endif
             }
             vc.row = self
             return vc
         },
         onDismiss: { [weak self] in
             $0.dismiss(animated: true)
-            self?.cell?.formViewController()?.tableView?.reloadData()
+            #if iMessage
+            if #available(iOS 10.0, *) {
+                guard let formViewController = self?.cell?.formViewController() as? FormMessagesViewController else { return }
+                formViewController.tableView?.reloadData()
+            }
+            #else
+            guard let formViewController = self?.cell?.formViewController() as? FormViewController else { return }
+            formViewController.tableView?.reloadData()
+            #endif
         })
     }()
 

@@ -26,15 +26,11 @@ import Foundation
 import UIKit
 
 open class _ButtonRowWithPresent<VCType: TypedRowControllerType>: Row<ButtonCellOf<VCType.RowValue>>, PresenterRowType where VCType: UIViewController {
+    
 
     open var presentationMode: PresentationMode<VCType>?
     
-    #if iMessage
-    @available(iOSApplicationExtension 10.0, *)
-    open var onPresentCallback: ((FormMessagesAppViewController, VCType) -> Void)?
-    #else
-    open var onPresentCallback: ((FormViewController, VCType) -> Void)?
-    #endif
+    open var onPresentCallback: ((UIViewController, VCType) -> Void)?
 
     required public init(tag: String?) {
         super.init(tag: tag)

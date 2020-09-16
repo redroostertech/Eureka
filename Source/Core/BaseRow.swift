@@ -274,50 +274,44 @@ extension BaseRow {
 
 extension BaseRow: Equatable, Hidable, Disableable {}
 
-#if iMessage
- @available(iOSApplicationExtension 10.0, *)
 extension BaseRow {
 
     public func reload(with rowAnimation: UITableView.RowAnimation = .none) {
-        guard let tableView = baseCell?.formViewController()?.tableView ?? (section?.form?.delegate as? FormMessagesAppViewController)?.tableView, let indexPath = indexPath else { return }
+        #if iMessage
+        if #available(iOS 10.0, *) {
+            guard let tableView = (baseCell?.formViewController() as? FormMessagesAppViewController)?.tableView ?? (section?.form?.delegate as? FormMessagesAppViewController)?.tableView, let indexPath = indexPath else { return }
+            tableView.reloadRows(at: [indexPath], with: rowAnimation)
+        }
+        #else
+        guard let tableView = (baseCell?.formViewController() as? FormViewController)?.tableView ?? (section?.form?.delegate as? FormViewController)?.tableView, let indexPath = indexPath else { return }
+        #endif
         tableView.reloadRows(at: [indexPath], with: rowAnimation)
     }
 
     public func deselect(animated: Bool = true) {
-        guard let indexPath = indexPath,
-            let tableView = baseCell?.formViewController()?.tableView ?? (section?.form?.delegate as? FormMessagesAppViewController)?.tableView  else { return }
+        #if iMessage
+        if #available(iOS 10.0, *) {
+        guard let tableView = (baseCell?.formViewController() as? FormMessagesAppViewController)?.tableView ?? (section?.form?.delegate as? FormMessagesAppViewController)?.tableView, let indexPath = indexPath else { return }
+        tableView.deselectRow(at: indexPath, animated: animated)
+        }
+        #else
+        guard let tableView = (baseCell?.formViewController() as? FormViewController)?.tableView ?? (section?.form?.delegate as? FormViewController)?.tableView, let indexPath = indexPath else { return }
+        #endif
         tableView.deselectRow(at: indexPath, animated: animated)
     }
 
     public func select(animated: Bool = false, scrollPosition: UITableView.ScrollPosition = .none) {
-        guard let indexPath = indexPath,
-            let tableView = baseCell?.formViewController()?.tableView ?? (section?.form?.delegate as? FormMessagesAppViewController)?.tableView  else { return }
+        #if iMessage
+        if #available(iOS 10.0, *) {
+        guard let tableView = (baseCell?.formViewController() as? FormMessagesAppViewController)?.tableView ?? (section?.form?.delegate as? FormMessagesAppViewController)?.tableView, let indexPath = indexPath else { return }
+        tableView.selectRow(at: indexPath, animated: animated, scrollPosition: scrollPosition)
+        }
+        #else
+        guard let tableView = (baseCell?.formViewController() as? FormViewController)?.tableView ?? (section?.form?.delegate as? FormViewController)?.tableView, let indexPath = indexPath else { return }
+        #endif
         tableView.selectRow(at: indexPath, animated: animated, scrollPosition: scrollPosition)
     }
 }
-
-#else
-extension BaseRow {
-
-    public func reload(with rowAnimation: UITableView.RowAnimation = .none) {
-        guard let tableView = baseCell?.formViewController()?.tableView ?? (section?.form?.delegate as? FormViewController)?.tableView, let indexPath = indexPath else { return }
-        tableView.reloadRows(at: [indexPath], with: rowAnimation)
-    }
-
-    public func deselect(animated: Bool = true) {
-        guard let indexPath = indexPath,
-            let tableView = baseCell?.formViewController()?.tableView ?? (section?.form?.delegate as? FormViewController)?.tableView  else { return }
-        tableView.deselectRow(at: indexPath, animated: animated)
-    }
-
-    public func select(animated: Bool = false, scrollPosition: UITableView.ScrollPosition = .none) {
-        guard let indexPath = indexPath,
-            let tableView = baseCell?.formViewController()?.tableView ?? (section?.form?.delegate as? FormViewController)?.tableView  else { return }
-        tableView.selectRow(at: indexPath, animated: animated, scrollPosition: scrollPosition)
-    }
-}
-
-#endif
 
 public func == (lhs: BaseRow, rhs: BaseRow) -> Bool {
     return lhs === rhs

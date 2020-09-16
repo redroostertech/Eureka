@@ -51,7 +51,17 @@ public class SwipeAction: ContextualAction {
 				strongSelf.handler(strongSelf, forRow) { _ in
 					DispatchQueue.main.async {
 						guard action.style == .destructive else {
-							forRow.baseCell?.formViewController()?.tableView?.setEditing(false, animated: true)
+                            #if iMessage
+                            if #available(iOS 10.0, *) {
+                                if let formviewcontroller = forRow.baseCell?.formViewController() as? FormMessagesViewController {
+                                    formviewcontroller.tableView?.setEditing(false, animated: true)
+                                }
+                            }
+                            #else
+                            if let formviewcontroller = forRow.baseCell?.formViewController() as? FormViewController {
+                                formviewcontroller.tableView?.setEditing(false, animated: true)
+                            }
+                            #endif
 							return
 						}
 						forRow.section?.remove(at: indexPath.row)

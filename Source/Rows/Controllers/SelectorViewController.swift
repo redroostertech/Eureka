@@ -63,13 +63,7 @@ public protocol OptionsProviderConformance: ExpressibleByArrayLiteral {
     associatedtype Option: Equatable
     
     init(array: [Option]?)
-    
-    #if iMessage
-    @available(iOSApplicationExtension 10.0, *)
-    func options(for selectorViewController: FormMessagesAppViewController, completion: @escaping ([Option]?) -> Void)
-    #else
-    func options(for selectorViewController: FormViewController, completion: @escaping ([Option]?) -> Void)
-    #endif
+    func options(for selectorViewController: UIViewController, completion: @escaping ([Option]?) -> Void)
     var optionsArray: [Option]? { get }
     
 }
@@ -81,11 +75,9 @@ public enum OptionsProvider<T: Equatable>: OptionsProviderConformance {
     case array([T]?)
     /// Provider that uses closure it was initialized with to provide options. Can be synchronous or asynchronous.
     
-    #if iMessage
-    @available(iOSApplicationExtension 10.0, *)
-    case lazy((FormMessagesAppViewController, @escaping ([T]?) -> Void) -> Void)
+    case lazy((UIViewController, @escaping ([T]?) -> Void) -> Void)
     
-    public func options(for selectorViewController: FormMessagesAppViewController, completion: @escaping ([T]?) -> Void) {
+    public func options(for selectorViewController: UIViewController, completion: @escaping ([T]?) -> Void) {
         switch self {
         case let .array(array):
             completion(array)
@@ -93,18 +85,6 @@ public enum OptionsProvider<T: Equatable>: OptionsProviderConformance {
             fetch(selectorViewController, completion)
         }
     }
-    #else
-    case lazy((FormViewController, @escaping ([T]?) -> Void) -> Void)
-    
-    public func options(for selectorViewController: FormViewController, completion: @escaping ([T]?) -> Void) {
-        switch self {
-        case let .array(array):
-            completion(array)
-        case let .lazy(fetch):
-            fetch(selectorViewController, completion)
-        }
-    }
-    #endif
     
     public init(array: [T]?) {
         self = .array(array)
@@ -124,9 +104,7 @@ public enum OptionsProvider<T: Equatable>: OptionsProviderConformance {
     }
 }
 
-#if iMessage
-@available(iOSApplicationExtension 10.0, *)
-open class _SelectorViewController<Row: SelectableRowType, OptionsRow: OptionsProviderRow>: FormMessagesAppViewController, TypedRowControllerType where Row: BaseRow, Row.Cell.Value == OptionsRow.OptionsProviderType.Option {
+open class _SelectorViewController<Row: SelectableRowType, OptionsRow: OptionsProviderRow>: UIViewController, TypedRowControllerType where Row: BaseRow, Row.Cell.Value == OptionsRow.OptionsProviderType.Option {
 
     /// The row that pushed or presented this controller
     public var row: RowOf<Row.Cell.Value>!
@@ -156,8 +134,17 @@ open class _SelectorViewController<Row: SelectableRowType, OptionsRow: OptionsPr
         return row as! OptionsRow
     }
 
-    override public init(style: UITableView.Style) {
-        super.init(style: style)
+    public var owner: Any?
+    
+    public convenience init(style: UITableView.Style) {
+        self.init()
+        #if iMessage
+        if #available(iOS 10.0, *) {
+            self.owner = FormMessagesAppViewController(style: style)
+        }
+        #else
+        self.owner = FormViewController(style: style)
+        #endif
     }
 
     override public init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
@@ -188,15 +175,31 @@ open class _SelectorViewController<Row: SelectableRowType, OptionsRow: OptionsPr
     }
     
     open func setupForm(with options: [Row.Cell.Value]) {
+         #if iMessage
+         if #available(iOS 10.0, *) {
+            guard let owner = self.owner as? FormMessagesAppViewController else { return print("Owner is of unsupported type.") }
+            if let optionsBySections = optionsBySections(with: options) {
+                for (sectionKey, options) in optionsBySections {
+                    owner.form +++ section(with: options,
+                                           header: sectionHeaderTitleForKey?(sectionKey),
+                                           footer: sectionFooterTitleForKey?(sectionKey))
+                }
+            } else {
+                owner.form +++ section(with: options, header: row.title, footer: nil)
+            }
+        }
+        #else
+        guard let owner = self.owner as? FormViewController else { return print("Owner is of unsupported type.") }
         if let optionsBySections = optionsBySections(with: options) {
             for (sectionKey, options) in optionsBySections {
-                form +++ section(with: options,
-                                 header: sectionHeaderTitleForKey?(sectionKey),
-                                 footer: sectionFooterTitleForKey?(sectionKey))
+                owner.form +++ section(with: options,
+                                       header: sectionHeaderTitleForKey?(sectionKey),
+                                       footer: sectionFooterTitleForKey?(sectionKey))
             }
         } else {
-            form +++ section(with: options, header: row.title, footer: nil)
+            owner.form +++ section(with: options, header: row.title, footer: nil)
         }
+        #endif
     }
     
     func optionsBySections(with options: [Row.Cell.Value]) -> [(String, [Row.Cell.Value])]? {
@@ -249,131 +252,6 @@ open class _SelectorViewController<Row: SelectableRowType, OptionsRow: OptionsPr
     }
 
 }
-#else
-open class _SelectorViewController<Row: SelectableRowType, OptionsRow: OptionsProviderRow>: FormViewController, TypedRowControllerType where Row: BaseRow, Row.Cell.Value == OptionsRow.OptionsProviderType.Option {
-
-    /// The row that pushed or presented this controller
-    public var row: RowOf<Row.Cell.Value>!
-    public var enableDeselection = true
-    public var dismissOnSelection = true
-    public var dismissOnChange = true
-
-    public var selectableRowSetup: ((_ row: Row) -> Void)?
-    public var selectableRowCellUpdate: ((_ cell: Row.Cell, _ row: Row) -> Void)?
-    public var selectableRowCellSetup: ((_ cell: Row.Cell, _ row: Row) -> Void)?
-	
-    /// A closure to be called when the controller disappears.
-    public var onDismissCallback: ((UIViewController) -> Void)?
-
-    /// A closure that should return key for particular row value.
-    /// This key is later used to break options by sections.
-    public var sectionKeyForValue: ((Row.Cell.Value) -> (String))?
-
-    /// A closure that returns header title for a section for particular key.
-    /// By default returns the key itself.
-    public var sectionHeaderTitleForKey: ((String) -> String?)? = { $0 }
-
-    /// A closure that returns footer title for a section for particular key.
-    public var sectionFooterTitleForKey: ((String) -> String?)?
-    
-    public var optionsProviderRow: OptionsRow {
-        return row as! OptionsRow
-    }
-
-    override public init(style: UITableView.Style) {
-        super.init(style: style)
-    }
-
-    override public init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
-        super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
-    }
-
-    convenience public init(_ callback: ((UIViewController) -> Void)?) {
-        self.init(nibName: nil, bundle: nil)
-        onDismissCallback = callback
-    }
-
-    public required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-    }
-
-    open override func viewDidLoad() {
-        super.viewDidLoad()
-        setupForm()
-    }
-
-    open func setupForm() {
-        let optProvider = optionsProviderRow.optionsProvider
-        optProvider?.options(for: self) { [weak self] (options: [Row.Cell.Value]?) in
-            guard let strongSelf = self, let options = options else { return }
-            strongSelf.optionsProviderRow.cachedOptionsData = options
-            strongSelf.setupForm(with: options)
-        }
-    }
-    
-    open func setupForm(with options: [Row.Cell.Value]) {
-        if let optionsBySections = optionsBySections(with: options) {
-            for (sectionKey, options) in optionsBySections {
-                form +++ section(with: options,
-                                 header: sectionHeaderTitleForKey?(sectionKey),
-                                 footer: sectionFooterTitleForKey?(sectionKey))
-            }
-        } else {
-            form +++ section(with: options, header: row.title, footer: nil)
-        }
-    }
-    
-    func optionsBySections(with options: [Row.Cell.Value]) -> [(String, [Row.Cell.Value])]? {
-        guard let sectionKeyForValue = sectionKeyForValue else { return nil }
-
-        let sections = options.reduce([:]) { (reduced, option) -> [String: [Row.Cell.Value]] in
-            var reduced = reduced
-            let key = sectionKeyForValue(option)
-            reduced[key] = (reduced[key] ?? []) + [option]
-            return reduced
-        }
-
-        return sections.sorted(by: { (lhs, rhs) in lhs.0 < rhs.0 })
-    }
-
-    func section(with options: [Row.Cell.Value], header: String?, footer: String?) -> SelectableSection<Row> {
-        let section = SelectableSection<Row>(header: header, footer: footer, selectionType: .singleSelection(enableDeselection: enableDeselection)) { section in
-            section.onSelectSelectableRow = { [weak self] _, row in
-                let changed = self?.row.value != row.value
-                self?.row.value = row.value
-                
-                if let form = row.section?.form {
-                    for section in form where section !== row.section {
-                        let section = section as Any as! SelectableSection<Row>
-                        if let selectedRow = section.selectedRow(), selectedRow !== row {
-                            selectedRow.value = nil
-                            selectedRow.updateCell()
-                        }
-                    }
-                }
-                
-                if self?.dismissOnSelection == true || (changed && self?.dismissOnChange == true) {
-                    self?.onDismissCallback?(self!)
-                }
-            }
-        }
-        for option in options {
-            section <<< Row.init(String(describing: option)) { lrow in
-                lrow.title = self.row.displayValueFor?(option)
-                lrow.selectableValue = option
-                lrow.value = self.row.value == option ? option : nil
-                self.selectableRowSetup?(lrow)
-            }.cellSetup { [weak self] cell, row in
-                self?.selectableRowCellSetup?(cell, row)
-            }.cellUpdate { [weak self] cell, row in
-                self?.selectableRowCellUpdate?(cell, row)
-            }
-        }
-        return section
-    }
-
-}
-#endif
 
 /// Selector Controller (used to select one option among a list)
 open class SelectorViewController<OptionsRow: OptionsProviderRow>: _SelectorViewController<ListCheckRow<OptionsRow.OptionsProviderType.Option>, OptionsRow> {

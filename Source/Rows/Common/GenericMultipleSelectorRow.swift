@@ -35,12 +35,7 @@ open class GenericMultipleSelectorRow<T, Cell: CellType>: Row<Cell>, PresenterRo
     open var presentationMode: PresentationMode<PresentedController>?
 
     /// Will be called before the presentation occurs.
-    #if iMessage
-    @available(iOSApplicationExtension 10.0, *)
-    open var onPresentCallback: ((FormMessagesAppViewController, PresentedController) -> Void)?
-    #else
-    open var onPresentCallback: ((FormViewController, PresentedController) -> Void)?
-    #endif
+    open var onPresentCallback: ((UIViewController, PresentedController) -> Void)?
     
     /// Title to be displayed for the options
     open var selectorTitle: String?
@@ -67,14 +62,29 @@ open class GenericMultipleSelectorRow<T, Cell: CellType>: Row<Cell>, PresenterRo
     open override func customDidSelect() {
         super.customDidSelect()
         guard let presentationMode = presentationMode, !isDisabled else { return }
+        #if iMessage
+        if #available(iOS 10.0, *) {
+            if let controller = presentationMode.makeController() {
+                controller.row = self
+                controller.title = selectorTitle ?? controller.title
+                onPresentCallback?(cell.formViewController()!, controller)
+                presentationMode.present(controller, row: self, presentingController: self.cell.formViewController()!)
+            } else {
+                guard let formviewController = self.cell.formViewController() as? FormMessagesAppViewController else { return }
+                presentationMode.present(nil, row: self, presentingController: formviewController)
+            }
+        }
+        #else
         if let controller = presentationMode.makeController() {
             controller.row = self
             controller.title = selectorTitle ?? controller.title
             onPresentCallback?(cell.formViewController()!, controller)
             presentationMode.present(controller, row: self, presentingController: self.cell.formViewController()!)
         } else {
-            presentationMode.present(nil, row: self, presentingController: self.cell.formViewController()!)
+            guard let formviewController = self.cell.formViewController() as? FormViewController else { return }
+            presentationMode.present(nil, row: self, presentingController: formviewController)
         }
+        #endif
     }
 
     /**

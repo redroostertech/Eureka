@@ -149,11 +149,22 @@ class RowsExampleViewController: FormViewController {
                 $0.value = 👦🏼
                 $0.selectorTitle = "Choose a lazy Emoji!"
                 $0.optionsProvider = .lazy({ (form, completion) in
+                    var tableView: UITableView!
+                    #if iMessage
+                    if #available(iOS 10.0, *) {
+                        guard let formviewcontroller = form as? FormMessagesViewController else { return }
+                        tableView = formviewcontroller.tableView
+                    }
+                    #else
+                    guard let formviewcontroller = form as? FormViewController else { return }
+                    tableView = formviewcontroller.tableView
+                    #endif
+                    
                     let activityView = UIActivityIndicatorView(style: .gray)
-                    form.tableView.backgroundView = activityView
+                    tableView.backgroundView = activityView
                     activityView.startAnimating()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: {
-                        form.tableView.backgroundView = nil
+                        tableView.backgroundView = nil
                         completion([💁🏻, 🍐, 👦🏼, 🐗, 🐼, 🐻])
                     })
                 })
@@ -244,11 +255,22 @@ class RowsExampleViewController: FormViewController {
                 $0.title = "LazyMultipleSelectorRow"
                 $0.value = [👦🏼, 🍐, 🐗]
                 $0.optionsProvider = .lazy({ (form, completion) in
+                    var tableView: UITableView!
+                    #if iMessage
+                    if #available(iOS 10.0, *) {
+                        guard let formviewcontroller = form as? FormMessagesViewController else { return }
+                        tableView = formviewcontroller.tableView
+                    }
+                    #else
+                    guard let formviewcontroller = form as? FormViewController else { return }
+                    tableView = formviewcontroller.tableView
+                    #endif
+                    
                     let activityView = UIActivityIndicatorView(style: .gray)
-                    form.tableView.backgroundView = activityView
+                    tableView.backgroundView = activityView
                     activityView.startAnimating()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: {
-                        form.tableView.backgroundView = nil
+                        tableView.backgroundView = nil
                         completion([💁🏻, 🍐, 👦🏼, 🐗, 🐼, 🐻])
                     })
                 })

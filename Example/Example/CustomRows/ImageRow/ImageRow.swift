@@ -73,7 +73,7 @@ open class _ImageRow<Cell: CellType>: OptionsRow<Cell>, PresenterRowType where C
     open var presentationMode: PresentationMode<PresenterRow>?
     
     /// Will be called before the presentation occurs.
-    open var onPresentCallback: ((FormViewController, PresenterRow) -> Void)?
+    open var onPresentCallback: ((UIViewController, PresenterRow) -> Void)?
 
     open var sourceTypes: ImageRowSourceTypes
     open internal(set) var imageURL: URL?
@@ -146,7 +146,17 @@ open class _ImageRow<Cell: CellType>: OptionsRow<Cell>, PresenterRowType where C
         
         // Now that we know the number of sources aren't empty, let the user select the source
         let sourceActionSheet = UIAlertController(title: nil, message: selectorTitle, preferredStyle: .actionSheet)
-        guard let tableView = cell.formViewController()?.tableView  else { fatalError() }
+        var tableView: UITableView!
+        #if iMessage
+        if #available(iOS 10.0, *) {
+            guard let formviewcontroller = cell.formViewController() as? FormMessagesViewController else { return }
+            tableView = formviewcontroller.tableView
+        }
+        #else
+        guard let formviewcontroller = cell.formViewController() as? FormViewController else { return }
+        tableView = formviewcontroller.tableView
+        #endif
+        
         if let popView = sourceActionSheet.popoverPresentationController {
             popView.sourceView = tableView
             popView.sourceRect = tableView.convert(cell.accessoryView?.frame ?? cell.contentView.frame, from: cell)

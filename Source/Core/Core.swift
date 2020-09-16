@@ -162,10 +162,8 @@ public enum PresentationMode<VCType: UIViewController> {
      - parameter viewController:           viewController to present if it makes sense (normally provided by makeController method)
      - parameter row:                      associated row
      - parameter presentingViewController: form view controller
-     */    
-    #if iMessage
-    @available(iOSApplicationExtension 10.0, *)
-    public func present(_ viewController: VCType!, row: BaseRow, presentingController: FormMessagesAppViewController) {
+     */
+    public func present(_ viewController: VCType!, row: BaseRow, presentingController: UIViewController) {
         switch self {
             case .show(_, _):
                 presentingController.show(viewController, sender: row)
@@ -181,34 +179,22 @@ public enum PresentationMode<VCType: UIViewController> {
                 guard let porpoverController = viewController.popoverPresentationController else {
                     fatalError()
                 }
-                porpoverController.sourceView = porpoverController.sourceView ?? presentingController.tableView
-                presentingController.present(viewController, animated: true)
-            }
-
-    }
-    #else
-    public func present(_ viewController: VCType!, row: BaseRow, presentingController: FormViewController) {
-        switch self {
-            case .show(_, _):
-                presentingController.show(viewController, sender: row)
-            case .presentModally(_, _):
-                presentingController.present(viewController, animated: true)
-            case .segueName(let segueName, _):
-                presentingController.performSegue(withIdentifier: segueName, sender: row)
-            case .segueClass(let segueClass, _):
-                let segue = segueClass.init(identifier: row.tag, source: presentingController, destination: viewController)
-                presentingController.prepare(for: segue, sender: row)
-                segue.perform()
-            case .popover(_, _):
-                guard let porpoverController = viewController.popoverPresentationController else {
-                    fatalError()
+                #if iMessage
+                if #available(iOS 10.0, *) {
+                    if let presentingcontroller = presentingController as? FormMessagesAppViewController {
+                        porpoverController.sourceView = porpoverController.sourceView ?? presentingcontroller.tableView
+                        presentingcontroller.present(viewController, animated: true)
+                    }
                 }
-                porpoverController.sourceView = porpoverController.sourceView ?? presentingController.tableView
-                presentingController.present(viewController, animated: true)
+                #else
+                    if let presentingcontroller = presentingController as? FormViewController {
+                        porpoverController.sourceView = porpoverController.sourceView ?? presentingcontroller.tableView
+                        presentingcontroller.present(viewController, animated: true)
+                    }
+                #endif
             }
 
     }
-    #endif
 
     /**
      Creates the view controller specified by presentation mode. Should only be used from custom row implementation.
