@@ -85,18 +85,17 @@ extension InlineRowType where Self: BaseRow, Self.Cell.Value ==  Self.InlineRow.
             if let indexPath = indexPath {
                 _inlineRow = inline
                 section.insert(inline, at: indexPath.row + 1)
-                #if iMessage
-                if #available(iOS 10.0, *) {
+                if
+                    Bundle.main.bundlePath.hasSuffix(".appex"),
+                    #available(iOS 10.0, *) {
                     if let formviewcontroller = cell.formViewController() as? FormMessagesAppViewController {
                         formviewcontroller.makeRowVisible(inline, destinationScrollPosition: destinationScrollPosition)
                     }
                 }
-                #else
                 if let formviewcontroller = cell.formViewController() as? FormViewController {
                     formviewcontroller.makeRowVisible(inline, destinationScrollPosition: destinationScrollPosition)
                         
                 }
-                #endif
             }
         }
     }

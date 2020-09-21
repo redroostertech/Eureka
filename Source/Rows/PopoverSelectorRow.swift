@@ -30,27 +30,29 @@ open class _PopoverSelectorRow<Cell: CellType> : SelectorRow<Cell> where Cell: B
     public required init(tag: String?) {
         super.init(tag: tag)
         onPresentCallback = { [weak self] (_, viewController) -> Void in
-            #if iMessage
-            if #available(iOS 10.0, *) {
-            guard
-                let porpoverController = viewController.popoverPresentationController,
-                let formviewcontroller = self?.baseCell.formViewController() as? FormMessagesAppViewController,
-                let tableView = formviewcontroller.tableView, let cell = self?.cell else {
-                fatalError()
+            if
+                Bundle.main.bundlePath.hasSuffix(".appex"),
+                #available(iOS 10.0, *) {
+                if
+                    let porpoverController = viewController.popoverPresentationController,
+                    let formviewcontroller = self?.baseCell.formViewController() as? FormMessagesAppViewController,
+                    let tableView = formviewcontroller.tableView,
+                    let cell = self?.cell {
+                    
+                    porpoverController.sourceView = tableView
+                    porpoverController.sourceRect = tableView.convert(cell.detailTextLabel?.frame ?? cell.textLabel?.frame ?? cell.contentView.frame, from: cell)
+                }
             }
-            porpoverController.sourceView = tableView
-            porpoverController.sourceRect = tableView.convert(cell.detailTextLabel?.frame ?? cell.textLabel?.frame ?? cell.contentView.frame, from: cell)
-            }
-            #else
-            guard
+            
+            if
                 let porpoverController = viewController.popoverPresentationController,
                 let formviewcontroller = self?.baseCell.formViewController() as? FormViewController,
-                let tableView = formviewcontroller.tableView, let cell = self?.cell else {
-                fatalError()
+                let tableView = formviewcontroller.tableView,
+                let cell = self?.cell {
+            
+                porpoverController.sourceView = tableView
+                porpoverController.sourceRect = tableView.convert(cell.detailTextLabel?.frame ?? cell.textLabel?.frame ?? cell.contentView.frame, from: cell)
             }
-            porpoverController.sourceView = tableView
-            porpoverController.sourceRect = tableView.convert(cell.detailTextLabel?.frame ?? cell.textLabel?.frame ?? cell.contentView.frame, from: cell)
-            #endif
         }
         presentationMode = .popover(controllerProvider: ControllerProvider.callback { return SelectorViewController<SelectorRow<Cell>> { _ in } }, onDismiss: { [weak self] in
             $0.dismiss(animated: true)

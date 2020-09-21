@@ -179,19 +179,18 @@ public enum PresentationMode<VCType: UIViewController> {
                 guard let porpoverController = viewController.popoverPresentationController else {
                     fatalError()
                 }
-                #if iMessage
-                if #available(iOS 10.0, *) {
+                if
+                    Bundle.main.bundlePath.hasSuffix(".appex"),
+                    #available(iOS 10.0, *) {
                     if let presentingcontroller = presentingController as? FormMessagesAppViewController {
                         porpoverController.sourceView = porpoverController.sourceView ?? presentingcontroller.tableView
                         presentingcontroller.present(viewController, animated: true)
                     }
                 }
-                #else
-                    if let presentingcontroller = presentingController as? FormViewController {
-                        porpoverController.sourceView = porpoverController.sourceView ?? presentingcontroller.tableView
-                        presentingcontroller.present(viewController, animated: true)
-                    }
-                #endif
+                if let presentingcontroller = presentingController as? FormViewController {
+                    porpoverController.sourceView = porpoverController.sourceView ?? presentingcontroller.tableView
+                    presentingcontroller.present(viewController, animated: true)
+                }
             }
 
     }

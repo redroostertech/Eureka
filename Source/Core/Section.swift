@@ -45,15 +45,23 @@ extension Section : Hidable, SectionDelegate {}
 extension Section {
 
     public func reload(with rowAnimation: UITableView.RowAnimation = .none) {
-        #if iMessage
-        if #available(iOS 10.0, *) {
-        guard let tableView = (form?.delegate as? FormMessagesAppViewController)?.tableView, let index = index, index < tableView.numberOfSections else { return }
+        if
+            Bundle.main.bundlePath.hasSuffix(".appex"),
+            #available(iOS 10.0, *) {
+            
+                if
+                    let tableView = (form?.delegate as? FormMessagesAppViewController)?.tableView,
+                    let index = index,
+                    index < tableView.numberOfSections {
+                    tableView.reloadSections(IndexSet(integer: index), with: rowAnimation)
+                }
+            }
+        if
+            let tableView = (form?.delegate as? FormViewController)?.tableView,
+            let index = index,
+            index < tableView.numberOfSections {
             tableView.reloadSections(IndexSet(integer: index), with: rowAnimation)
         }
-        #else
-        guard let tableView = (form?.delegate as? FormViewController)?.tableView, let index = index, index < tableView.numberOfSections else { return }
-        tableView.reloadSections(IndexSet(integer: index), with: rowAnimation)
-        #endif
     }
 }
 
@@ -561,19 +569,23 @@ open class GenericMultivaluedSection<AddButtonType: RowType>: BaseMultivaluedSec
         let addRow = addButtonProvider(self)
         addRow.onCellSelection { cell, row in
             guard !row.isDisabled else { return }
-            #if iMessage
-            if #available(iOS 10.0, *) {
-                guard
-                    let formviewcontroller = cell.formViewController() as? FormMessagesViewController,
-                    let tableView = formviewcontroller.tableView, let indexPath = row.indexPath else { return }
+            if
+                Bundle.main.bundlePath.hasSuffix(".appex"),
+                #available(iOS 10.0, *) {
+                
+                if
+                    let formviewcontroller = cell.formViewController() as? FormMessagesAppViewController,
+                    let tableView = formviewcontroller.tableView,
+                    let indexPath = row.indexPath {
+                    formviewcontroller.tableView(tableView, commit: .insert, forRowAt: indexPath)
+                }
+            }
+            if
+                let formviewcontroller = cell.formViewController() as? FormViewController,
+                let tableView = formviewcontroller.tableView,
+                let indexPath = row.indexPath {
                 formviewcontroller.tableView(tableView, commit: .insert, forRowAt: indexPath)
             }
-            #else
-            guard
-                let formviewcontroller = cell.formViewController() as? FormViewController,
-                let tableView = formviewcontroller.tableView, let indexPath = row.indexPath else { return }
-            formviewcontroller.tableView(tableView, commit: .insert, forRowAt: indexPath)
-            #endif
         }
         self <<< addRow
     }

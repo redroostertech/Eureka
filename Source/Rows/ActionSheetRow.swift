@@ -58,38 +58,41 @@ open class _ActionSheetRow<Cell: CellType>: AlertOptionsRow<Cell>, PresenterRowT
         return .presentModally(controllerProvider: ControllerProvider.callback { [weak self] in
             let vc = SelectorAlertController<_ActionSheetRow<Cell>>(title: self?.selectorTitle, message: nil, preferredStyle: .actionSheet)
             if let popView = vc.popoverPresentationController {
-                #if iMessage
-                if #available(iOS 10.0, *) {
-                    guard
+                if
+                    Bundle.main.bundlePath.hasSuffix(".appex"),
+                    #available(iOS 10.0, *) {
+                    if
                         let cell = self?.cell,
-                        let formViewController = self?.cell?.formViewController() as? FormMessagesViewController,
-                        let tableView = formViewController.tableView else { fatalError() }
-                    popView.sourceView = tableView
-                    popView.sourceRect = tableView.convert(cell.detailTextLabel?.frame ?? cell.textLabel?.frame ?? cell.contentView.frame, from: cell)
+                        let formViewController = self?.cell?.formViewController() as? FormMessagesAppViewController,
+                        let tableView = formViewController.tableView {
+                        popView.sourceView = tableView
+                        popView.sourceRect = tableView.convert(cell.detailTextLabel?.frame ?? cell.textLabel?.frame ?? cell.contentView.frame, from: cell)
+                    }
                 }
-                #else
-                guard
+
+                if
                     let cell = self?.cell,
                     let formViewController = self?.cell?.formViewController() as? FormViewController,
-                    let tableView = formViewController.tableView else { fatalError() }
+                    let tableView = formViewController.tableView {
                 popView.sourceView = tableView
                 popView.sourceRect = tableView.convert(cell.detailTextLabel?.frame ?? cell.textLabel?.frame ?? cell.contentView.frame, from: cell)
-                #endif
+                }
             }
             vc.row = self
             return vc
         },
         onDismiss: { [weak self] in
             $0.dismiss(animated: true)
-            #if iMessage
-            if #available(iOS 10.0, *) {
-                guard let formViewController = self?.cell?.formViewController() as? FormMessagesViewController else { return }
+            if
+                Bundle.main.bundlePath.hasSuffix(".appex"),
+                #available(iOS 10.0, *) {
+                if let formViewController = self?.cell?.formViewController() as? FormMessagesAppViewController {
+                formViewController.tableView?.reloadData()
+                }
+            }
+            if let formViewController = self?.cell?.formViewController() as? FormViewController {
                 formViewController.tableView?.reloadData()
             }
-            #else
-            guard let formViewController = self?.cell?.formViewController() as? FormViewController else { return }
-            formViewController.tableView?.reloadData()
-            #endif
         })
     }()
 

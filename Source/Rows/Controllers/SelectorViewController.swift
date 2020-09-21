@@ -138,13 +138,13 @@ open class _SelectorViewController<Row: SelectableRowType, OptionsRow: OptionsPr
     
     public convenience init(style: UITableView.Style) {
         self.init()
-        #if iMessage
-        if #available(iOS 10.0, *) {
+        if
+            Bundle.main.bundlePath.hasSuffix(".appex"),
+            #available(iOS 10.0, *) {
             self.owner = FormMessagesAppViewController(style: style)
+        } else {
+            self.owner = FormViewController(style: style)
         }
-        #else
-        self.owner = FormViewController(style: style)
-        #endif
     }
 
     override public init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
@@ -175,9 +175,22 @@ open class _SelectorViewController<Row: SelectableRowType, OptionsRow: OptionsPr
     }
     
     open func setupForm(with options: [Row.Cell.Value]) {
-         #if iMessage
-         if #available(iOS 10.0, *) {
-            guard let owner = self.owner as? FormMessagesAppViewController else { return print("Owner is of unsupported type.") }
+         if
+            Bundle.main.bundlePath.hasSuffix(".appex"),
+            #available(iOS 10.0, *) {
+            if let owner = self.owner as? FormMessagesAppViewController {
+                if let optionsBySections = optionsBySections(with: options) {
+                    for (sectionKey, options) in optionsBySections {
+                        owner.form +++ section(with: options,
+                                               header: sectionHeaderTitleForKey?(sectionKey),
+                                               footer: sectionFooterTitleForKey?(sectionKey))
+                    }
+                } else {
+                    owner.form +++ section(with: options, header: row.title, footer: nil)
+                }
+            }
+        }
+        if let owner = self.owner as? FormViewController {
             if let optionsBySections = optionsBySections(with: options) {
                 for (sectionKey, options) in optionsBySections {
                     owner.form +++ section(with: options,
@@ -188,18 +201,6 @@ open class _SelectorViewController<Row: SelectableRowType, OptionsRow: OptionsPr
                 owner.form +++ section(with: options, header: row.title, footer: nil)
             }
         }
-        #else
-        guard let owner = self.owner as? FormViewController else { return print("Owner is of unsupported type.") }
-        if let optionsBySections = optionsBySections(with: options) {
-            for (sectionKey, options) in optionsBySections {
-                owner.form +++ section(with: options,
-                                       header: sectionHeaderTitleForKey?(sectionKey),
-                                       footer: sectionFooterTitleForKey?(sectionKey))
-            }
-        } else {
-            owner.form +++ section(with: options, header: row.title, footer: nil)
-        }
-        #endif
     }
     
     func optionsBySections(with options: [Row.Cell.Value]) -> [(String, [Row.Cell.Value])]? {

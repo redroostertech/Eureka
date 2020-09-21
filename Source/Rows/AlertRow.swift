@@ -37,17 +37,16 @@ open class _AlertRow<Cell: CellType>: AlertOptionsRow<Cell>, PresenterRowType wh
             return vc
         }, onDismiss: { [weak self] in
             $0.dismiss(animated: true)
-            #if iMessage
-            if #available(iOS 10.0, *) {
-                if let formViewController = self?.cell?.formViewController() as? FormMessagesViewController {
+            if
+                Bundle.main.bundlePath.hasSuffix(".appex"),
+                #available(iOS 10.0, *) {
+                if let formViewController = self?.cell?.formViewController() as? FormMessagesAppViewController {
                     formViewController.tableView?.reloadData()
                 }
             }
-            #else
             if let formViewController = self?.cell?.formViewController() as? FormViewController {
                 formViewController.tableView?.reloadData()
             }
-            #endif
         })
     }()
 

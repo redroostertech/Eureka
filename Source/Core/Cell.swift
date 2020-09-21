@@ -48,19 +48,17 @@ open class BaseCell: UITableViewCell, BaseCellType {
     public func formViewController() -> UIViewController? {
         var responder: AnyObject? = self
         while responder != nil {
-            #if iMessage
-            if #available(iOS 10.0, *) {
+            if #available(iOSApplicationExtension 10.0, *) {
                 if let formVC = responder as? FormMessagesAppViewController {
-                  return formVC
+                    return formVC
                 }
-                responder = responder?.next
             }
-            #else
-                if let formVC = responder as? FormViewController {
-                  return formVC
-                }
-                responder = responder?.next
-            #endif
+            
+            if let formVC = responder as? FormViewController {
+              return formVC
+            }
+            
+            responder = responder?.next
         }
         return nil
     }
@@ -106,23 +104,21 @@ open class Cell<T>: BaseCell, TypedCellType where T: Equatable {
 
     /// Returns the navigationAccessoryView if it is defined or calls super if not.
     override open var inputAccessoryView: UIView? {
-        #if iMessage
-        if #available(iOS 10.0, *) {
+        if
+            Bundle.main.bundlePath.hasSuffix(".appex"),
+            #available(iOS 10.0, *) {
             if
                 let formviewcontroller = formViewController() as? FormMessagesAppViewController,
                 let v = formviewcontroller.inputAccessoryView(for: row) {
                 return v
             }
-            return super.inputAccessoryView
         }
-        #else
         if
             let formviewcontroller = formViewController() as? FormViewController,
             let v = formviewcontroller.inputAccessoryView(for: row) {
             return v
         }
         return super.inputAccessoryView
-        #endif
     }
 
     required public init?(coder aDecoder: NSCoder) {
@@ -162,17 +158,16 @@ open class Cell<T>: BaseCell, TypedCellType where T: Equatable {
     open override func becomeFirstResponder() -> Bool {
         let result = super.becomeFirstResponder()
         if result {
-            #if iMessage
-            if #available(iOS 10.0, *) {
+            if
+            Bundle.main.bundlePath.hasSuffix(".appex"),
+            #available(iOS 10.0, *) {
                 if let formviewcontroller = formViewController() as? FormMessagesAppViewController {
                     formviewcontroller.beginEditing(of: self)
                 }
             }
-            #else
             if let formviewcontroller = formViewController() as? FormViewController {
                 formviewcontroller.beginEditing(of: self)
             }
-            #endif
         }
         return result
     }
@@ -180,17 +175,16 @@ open class Cell<T>: BaseCell, TypedCellType where T: Equatable {
     open override func resignFirstResponder() -> Bool {
         let result = super.resignFirstResponder()
         if result {
-            #if iMessage
-            if #available(iOS 10.0, *) {
+            if
+            Bundle.main.bundlePath.hasSuffix(".appex"),
+            #available(iOS 10.0, *) {
                 if let formviewcontroller = formViewController() as? FormMessagesAppViewController {
                     formviewcontroller.endEditing(of: self)
                 }
             }
-            #else
             if let formviewcontroller = formViewController() as? FormViewController {
                 formviewcontroller.endEditing(of: self)
             }
-            #endif
         }
         return result
     }
