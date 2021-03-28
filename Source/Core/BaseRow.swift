@@ -77,8 +77,13 @@ open class BaseRow: BaseRowType {
         get { return nil }
     }
 
-    public func validate(quietly: Bool = false) -> [ValidationError] {
+    open func validate(quietly: Bool = false) -> [ValidationError] {
         return []
+    }
+
+    // Reset validation
+    open func cleanValidationErrors() {
+        validationErrors = []
     }
 
     public static var estimatedRowHeight: CGFloat = 44.0
@@ -151,13 +156,6 @@ open class BaseRow: BaseRowType {
                 baseCell.cellResignFirstResponder()
             }
         }
-    }
-}
-
-extension BaseRow {
-    // Reset validation
-    public func cleanValidationErrors(){
-        validationErrors = []
     }
 }
 
